@@ -24,6 +24,18 @@ async function trainModel(xs, ys) {
     return model;
 }
 
+async function predict(model, tensorPessoa) {
+    // Fazemos a previsão com o modelo treinado
+    const tfInput = tf.tensor2d(tensorPessoa);
+    const prediction = model.predict(tfInput);
+    const predictionArray = await prediction.array();
+   //const predictedIndex = predictionArray[0].indexOf(Math.max(...predictionArray[0]));
+    // const predictedLabel = labelsNomes[predictedIndex];
+
+
+    return predictionArray[0].map((prob, index) => ({ prob,index }));
+
+}
 
 // Exemplo de pessoas para treino (cada pessoa com idade, cor e localização)
 // const pessoas = [
@@ -61,4 +73,18 @@ const tensorLabels = [
 const inputXs = tf.tensor2d(tensorPessoasNormalizado)
 const outputYs = tf.tensor2d(tensorLabels)
 
-const model = trainModel(inputXs, outputYs);
+const model = await trainModel(inputXs, outputYs);
+
+const pessoa = {nome: "Jé", idade: 28, cor: "azul", localizacao: "São Paulo"};
+
+const tensorPessoa = [[0.2, 0, 0, 1, 0, 0, 1]];
+
+const predictions = await predict(model, tensorPessoa);
+
+const result = predictions.sort((a, b) => b.prob - a.prob)
+.map(p => `${labelsNomes[p.index]}: ${(p.prob * 100).toFixed(2)}%`)
+.join('\n ');
+
+console.log(result);
+
+
